@@ -1,5 +1,4 @@
 use sha2::{Sha256, Digest};
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct MerkleTree {
@@ -10,9 +9,12 @@ pub struct MerkleTree {
 impl MerkleTree {
     pub fn new(elements: Vec<&str>) -> Self {
         let leaves: Vec<String> = elements.into_iter().map(|e| Self::hash(e)).collect();
-        let mut tree = HashMap::new();
-        let mut current_level = leaves.clone();
+        let root = Self::build_tree(&leaves);
+        Self { root, leaves }
+    }
 
+    fn build_tree(leaves: &[String]) -> String {
+        let mut current_level = leaves.to_vec();
         while current_level.len() > 1 {
             let mut next_level = Vec::new();
             for i in (0..current_level.len()).step_by(2) {
@@ -23,14 +25,17 @@ impl MerkleTree {
                     left
                 };
                 let parent_hash = Self::hash(&(left.clone() + right));
-                next_level.push(parent_hash.clone());
-                tree.insert(left.clone() + right, parent_hash);
+                next_level.push(parent_hash);
             }
             current_level = next_level;
         }
+        current_level[0].clone()
+    }
 
-        let root = current_level[0].clone();
-        Self { root, leaves }
+    pub fn add_element(&mut self, element: &str) {
+        let new_leaf = Self::hash(element);
+        self.leaves.push(new_leaf.clone());
+        self.root = Self::build_tree(&self.leaves);
     }
 
     pub fn generate_proof(&self, element: &str) -> Option<Vec<(String, bool)>> {
