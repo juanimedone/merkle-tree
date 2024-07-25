@@ -22,7 +22,7 @@ fn test_tree_with_4_elements() {
     let proof = tree.generate_proof("d").unwrap();
     assert!(tree.verify("d", proof));
 
-    assert!(tree.generate_proof("x").is_none()); 
+    assert!(tree.generate_proof("x").is_none());
 
     tree.add_element("e");
     assert_eq!(tree.leaves.len(), 5);

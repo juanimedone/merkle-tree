@@ -1,14 +1,14 @@
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone)]
 pub struct MerkleTree {
     pub root: String,
-    pub leaves: Vec<String>,            
+    pub leaves: Vec<String>,
 }
 
 impl MerkleTree {
     pub fn new(elements: Vec<&str>) -> Self {
-        let leaves: Vec<String> = elements.into_iter().map(|e| Self::hash(e)).collect();
+        let leaves: Vec<String> = elements.into_iter().map(Self::hash).collect();
         let root = Self::build_tree(&leaves);
         Self { root, leaves }
     }
@@ -42,11 +42,11 @@ impl MerkleTree {
         let mut hash = Self::hash(element);
         let mut proof = Vec::new();
         let mut current_level = self.leaves.clone();
-        
+
         while current_level.len() > 1 {
             let mut next_level = Vec::new();
             let mut found = false;
-            
+
             for i in (0..current_level.len()).step_by(2) {
                 let left = &current_level[i];
                 let right = if i + 1 < current_level.len() {
@@ -56,23 +56,27 @@ impl MerkleTree {
                 };
                 let parent_hash = Self::hash(&(left.clone() + right));
                 if left == &hash || right == &hash {
-                    proof.push(if left == &hash { (right.clone(), false) } else { (left.clone(), true) });
-                    hash = parent_hash.clone();
+                    proof.push(if left == &hash {
+                        (right.clone(), false)
+                    } else {
+                        (left.clone(), true)
+                    });
+                    hash.clone_from(&parent_hash);
                     found = true;
                 }
                 next_level.push(parent_hash);
             }
-            
+
             if !found {
                 return None;
             }
-            
+
             current_level = next_level;
         }
-        
+
         Some(proof)
     }
-    
+
     pub fn verify(&self, element: &str, proof: Vec<(String, bool)>) -> bool {
         let mut hash = Self::hash(element);
         for (p, is_left) in proof {
