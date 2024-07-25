@@ -2,7 +2,7 @@ use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone)]
 pub struct MerkleTree {
-    pub root: String,
+    pub root: Option<String>,
     pub leaves: Vec<String>,
 }
 
@@ -13,7 +13,10 @@ impl MerkleTree {
         Self { root, leaves }
     }
 
-    fn build_tree(leaves: &[String]) -> String {
+    fn build_tree(leaves: &[String]) -> Option<String> {
+        if leaves.is_empty() {
+            return None;
+        }
         let mut current_level = leaves.to_vec();
         while current_level.len() > 1 {
             let mut next_level = Vec::new();
@@ -29,7 +32,7 @@ impl MerkleTree {
             }
             current_level = next_level;
         }
-        current_level[0].clone()
+        Some(current_level[0].clone())
     }
 
     pub fn add_element(&mut self, element: &str) {
@@ -39,6 +42,10 @@ impl MerkleTree {
     }
 
     pub fn generate_proof(&self, element: &str) -> Option<Vec<(String, bool)>> {
+        if self.leaves.is_empty() {
+            return None;
+        }
+
         let mut hash = Self::hash(element);
         let mut proof = Vec::new();
         let mut current_level = self.leaves.clone();
@@ -78,15 +85,19 @@ impl MerkleTree {
     }
 
     pub fn verify(&self, element: &str, proof: Vec<(String, bool)>) -> bool {
-        let mut hash = Self::hash(element);
-        for (p, is_left) in proof {
-            hash = if is_left {
-                Self::hash(&(p + &hash))
-            } else {
-                Self::hash(&(hash + &p))
-            };
+        if let Some(root) = &self.root {
+            let mut hash = Self::hash(element);
+            for (p, is_left) in proof {
+                hash = if is_left {
+                    Self::hash(&(p + &hash))
+                } else {
+                    Self::hash(&(hash + &p))
+                };
+            }
+            hash == *root
+        } else {
+            false
         }
-        hash == self.root
     }
 
     fn hash(data: &str) -> String {
