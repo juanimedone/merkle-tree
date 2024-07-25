@@ -3,7 +3,7 @@ use merkle_tree::MerkleTree;
 #[test]
 fn test_empty_tree() {
     let elements = vec![];
-    let mut tree = MerkleTree::new(elements.clone());
+    let mut tree = MerkleTree::new(elements);
 
     assert_eq!(tree.leaves.len(), 0);
     assert!(tree.root.is_none());
@@ -28,7 +28,7 @@ fn test_empty_tree() {
 #[test]
 fn test_tree_with_4_elements() {
     let elements = vec!["a", "b", "c", "d"];
-    let mut tree = MerkleTree::new(elements.clone());
+    let mut tree = MerkleTree::new(elements);
 
     assert_eq!(tree.leaves.len(), 4);
     assert_eq!(tree.root.clone().unwrap().len(), 64);
