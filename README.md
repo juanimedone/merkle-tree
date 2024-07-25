@@ -7,7 +7,7 @@ A simple implementation of a Merkle Tree in Rust. This library allows you to cre
 To use this library in your project, add the following line to your `Cargo.toml` file under `[dependencies]`:
 
 ```toml
-merkle_tree = { git = "https://github.com/juanimedone/merkle-tree" }
+merkle_tree = { git = "https://github.com/juanimedone/merkle-tree.git", branch = "main" }
 ```
 
 ## Usage
