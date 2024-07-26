@@ -157,9 +157,7 @@ impl MerkleTree {
     ///
     /// A string representing the hexadecimal encoding of the SHA256 hash of the data.
     fn hash(data: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(data);
-        let result = hasher.finalize();
+        let result = Sha256::digest(data);
         hex::encode(result)
     }
 }
