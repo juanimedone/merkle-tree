@@ -1,5 +1,12 @@
 use sha2::{Digest, Sha256};
 
+/// Enum representing the sibling position in the Merkle Tree.
+#[derive(Debug, Clone)]
+pub enum Sibling {
+    Left(String),
+    Right(String),
+}
+
 /// A struct representing a Merkle Tree.
 #[derive(Debug, Clone)]
 pub struct MerkleTree {
@@ -75,9 +82,8 @@ impl MerkleTree {
     ///
     /// # Returns
     ///
-    /// An `Option<Vec<(String, bool)>>` representing the proof, where each tuple contains a hash
-    /// and a boolean indicating whether the hash is from the left (true) or right (false) sibling.
-    pub fn generate_proof(&self, element: &str) -> Option<Vec<(String, bool)>> {
+    /// An `Option<Vec<Sibling>>` representing the proof, where each `Sibling` indicates whether the hash is from the left or right sibling.
+    pub fn generate_proof(&self, element: &str) -> Option<Vec<Sibling>> {
         if self.leaves.is_empty() {
             return None;
         }
@@ -100,9 +106,9 @@ impl MerkleTree {
                 let parent_hash = Self::hash(&(left.clone() + right));
                 if left == &hash || right == &hash {
                     proof.push(if left == &hash {
-                        (right.clone(), false)
+                        Sibling::Right(right.clone())
                     } else {
-                        (left.clone(), true)
+                        Sibling::Left(left.clone())
                     });
                     hash.clone_from(&parent_hash);
                     found = true;
@@ -125,20 +131,18 @@ impl MerkleTree {
     /// # Arguments
     ///
     /// * `element` - A string slice representing the element to be verified.
-    /// * `proof` - A vector of tuples representing the proof, where each tuple contains a hash
-    ///   and a boolean indicating whether the hash is from the left (true) or right (false) sibling.
+    /// * `proof` - A vector of `Sibling` representing the proof.
     ///
     /// # Returns
     ///
     /// A boolean indicating whether the element is part of the tree.
-    pub fn verify(&self, element: &str, proof: Vec<(String, bool)>) -> bool {
+    pub fn verify(&self, element: &str, proof: Vec<Sibling>) -> bool {
         if let Some(root) = &self.root {
             let mut hash = Self::hash(element);
-            for (p, is_left) in proof {
-                hash = if is_left {
-                    Self::hash(&(p + &hash))
-                } else {
-                    Self::hash(&(hash + &p))
+            for sibling in proof {
+                hash = match sibling {
+                    Sibling::Left(s) => Self::hash(&(s + &hash)),
+                    Sibling::Right(s) => Self::hash(&(hash + &s)),
                 };
             }
             hash == *root

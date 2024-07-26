@@ -1,4 +1,4 @@
-use merkle_tree::MerkleTree;
+use merkle_tree::{MerkleTree, Sibling};
 
 #[test]
 fn test_empty_tree() {
@@ -9,7 +9,7 @@ fn test_empty_tree() {
     assert!(tree.root.is_none());
 
     assert!(tree.generate_proof("a").is_none());
-    assert!(!tree.verify("a", vec![("test".to_string(), false)]));
+    assert!(!tree.verify("a", vec![Sibling::Left("test".to_string())]));
 
     tree.add_element("a");
     assert_eq!(tree.leaves.len(), 1);
