@@ -23,7 +23,7 @@ fn main() {
     let elements = vec!["a", "b", "c", "d"];
     let tree = MerkleTree::new(elements);
 
-    println!("Root hash: {:?}", tree.root);
+    println!("Root hash: {:?}", tree.root.unwrap());
 }
 ```
 
@@ -56,7 +56,7 @@ fn main() {
     let proof = tree.generate_proof("a").unwrap();
 
     let is_valid = tree.verify("a", proof);
-    println!("Is the proof valid? {}", is_valid);
+    println!("Is the proof valid? {:?}", is_valid);
 }
 ```
 
@@ -70,10 +70,10 @@ use merkle_tree::MerkleTree;
 fn main() {
     let elements = vec!["a", "b", "c", "d"];
     let mut tree = MerkleTree::new(elements);
-    println!("Root hash: {:?}", tree.root);
+    println!("Root hash: {:?}", tree.root.clone().unwrap());
     
     tree.add_element("e");
-    println!("New root hash: {:?}", tree.root);
+    println!("New root hash: {:?}", tree.root.unwrap());
 }
 ```
 
