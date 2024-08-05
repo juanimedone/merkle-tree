@@ -72,3 +72,65 @@ fn test_tree_with_4_elements() {
 
     assert!(!tree.verify("f", proof));
 }
+
+#[test]
+fn test_tree_with_101_elements() {
+    let elements: Vec<String> = (0..101).map(|i| i.to_string()).collect();
+    let element_refs: Vec<&str> = elements.iter().map(|s| s.as_str()).collect();
+    let mut tree = MerkleTree::new(element_refs).unwrap();
+
+    assert_eq!(tree.leaves.len(), 101);
+    assert_eq!(tree.root.clone().len(), 64);
+
+    let elements_to_test = vec!["0", "50", "100"];
+    for &element in &elements_to_test {
+        let proof = tree.generate_proof(element).unwrap();
+        assert!(tree.verify(element, proof.clone()));
+
+        let mut modified_proof = proof.clone();
+        modified_proof.pop();
+        assert!(!tree.verify(element, modified_proof));
+    }
+
+    assert!(tree.generate_proof("101").is_none());
+
+    tree.add_element("new_element");
+    assert_eq!(tree.leaves.len(), 102);
+    assert_eq!(tree.root.clone().len(), 64);
+
+    let proof = tree.generate_proof("new_element").unwrap();
+    assert!(tree.verify("new_element", proof.clone()));
+
+    assert!(!tree.verify("another_element", proof));
+}
+
+#[test]
+fn test_tree_with_256_elements() {
+    let elements: Vec<String> = (0..256).map(|i| i.to_string()).collect();
+    let element_refs: Vec<&str> = elements.iter().map(|s| s.as_str()).collect();
+    let mut tree = MerkleTree::new(element_refs).unwrap();
+
+    assert_eq!(tree.leaves.len(), 256);
+    assert_eq!(tree.root.clone().len(), 64);
+
+    let elements_to_test = vec!["0", "128", "255"];
+    for &element in &elements_to_test {
+        let proof = tree.generate_proof(element).unwrap();
+        assert!(tree.verify(element, proof.clone()));
+
+        let mut modified_proof = proof.clone();
+        modified_proof.pop();
+        assert!(!tree.verify(element, modified_proof));
+    }
+
+    assert!(tree.generate_proof("256").is_none());
+
+    tree.add_element("new_element");
+    assert_eq!(tree.leaves.len(), 257);
+    assert_eq!(tree.root.clone().len(), 64);
+
+    let proof = tree.generate_proof("new_element").unwrap();
+    assert!(tree.verify("new_element", proof.clone()));
+
+    assert!(!tree.verify("another_element", proof));
+}
