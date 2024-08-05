@@ -10,8 +10,8 @@ pub enum Sibling {
 /// A struct representing a Merkle Tree.
 #[derive(Debug, Clone)]
 pub struct MerkleTree {
-    /// The root hash of the Merkle Tree. It is `None` if tree is empty.
-    pub root: Option<String>,
+    /// The root hash of the Merkle Tree.
+    pub root: String,
     /// The leaf nodes of the Merkle Tree.
     pub leaves: Vec<String>,
 }
@@ -25,11 +25,16 @@ impl MerkleTree {
     ///
     /// # Returns
     ///
-    /// A new `MerkleTree` instance.
-    pub fn new(elements: Vec<&str>) -> Self {
+    /// A `Result` which is:
+    /// - `Ok(MerkleTree)` if the `elements` vector is not empty.
+    /// - `Err(String)` if the `elements` vector is empty, containing an error message.
+    pub fn new(elements: Vec<&str>) -> Result<Self, String> {
+        if elements.is_empty() {
+            return Err("Error: cannot build a tree with no elements".to_string());
+        }
         let leaves: Vec<String> = elements.into_iter().map(Self::hash).collect();
         let root = Self::build_tree(&leaves);
-        Self { root, leaves }
+        Ok(Self { root, leaves })
     }
 
     /// Builds the Merkle Tree from the given leaves.
@@ -40,11 +45,8 @@ impl MerkleTree {
     ///
     /// # Returns
     ///
-    /// An `Option<String>` representing the root hash of the tree. It is `None` if tree is empty.
-    fn build_tree(leaves: &[String]) -> Option<String> {
-        if leaves.is_empty() {
-            return None;
-        }
+    /// A `String` representing the root hash of the tree.
+    fn build_tree(leaves: &[String]) -> String {
         let mut current_level = leaves.to_vec();
         while current_level.len() > 1 {
             let mut next_level = Vec::new();
@@ -60,7 +62,7 @@ impl MerkleTree {
             }
             current_level = next_level;
         }
-        Some(current_level[0].clone())
+        current_level[0].clone()
     }
 
     /// Adds a new leaf element and builds the Merkle Tree again.
@@ -84,10 +86,6 @@ impl MerkleTree {
     ///
     /// An `Option<Vec<Sibling>>` representing the proof, where each `Sibling` indicates whether the hash is from the left or right sibling.
     pub fn generate_proof(&self, element: &str) -> Option<Vec<Sibling>> {
-        if self.leaves.is_empty() {
-            return None;
-        }
-
         let mut hash = Self::hash(element);
         let mut proof = Vec::new();
         let mut current_level = self.leaves.clone();
@@ -137,18 +135,14 @@ impl MerkleTree {
     ///
     /// A boolean indicating whether the element is part of the tree.
     pub fn verify(&self, element: &str, proof: Vec<Sibling>) -> bool {
-        if let Some(root) = &self.root {
-            let mut hash = Self::hash(element);
-            for sibling in proof {
-                hash = match sibling {
-                    Sibling::Left(s) => Self::hash(&(s + &hash)),
-                    Sibling::Right(s) => Self::hash(&(hash + &s)),
-                };
-            }
-            hash == *root
-        } else {
-            false
+        let mut hash = Self::hash(element);
+        for sibling in proof {
+            hash = match sibling {
+                Sibling::Left(s) => Self::hash(&(s + &hash)),
+                Sibling::Right(s) => Self::hash(&(hash + &s)),
+            };
         }
+        hash == *self.root
     }
 
     /// Computes the SHA256 hash of the given data.
