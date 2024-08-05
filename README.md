@@ -20,10 +20,12 @@ To create a new Merkle Tree with initial elements, use the `new` method. This in
 use merkle_tree::MerkleTree;
 
 fn main() {
+    // Create a new Merkle Tree with initial elements
     let elements = vec!["a", "b", "c", "d"];
-    let tree = MerkleTree::new(elements);
+    let tree = MerkleTree::new(elements).unwrap();
 
-    println!("Root hash: {:?}", tree.root.unwrap());
+    // Print the root hash
+    println!("Root hash: {:?}", tree.root);
 }
 ```
 
@@ -36,9 +38,10 @@ use merkle_tree::MerkleTree;
 
 fn main() {
     let elements = vec!["a", "b", "c", "d"];
-    let tree = MerkleTree::new(elements);
+    let tree = MerkleTree::new(elements).unwrap();
 
-    let proof = tree.generate_proof("a");
+    // Generate a proof for an element
+    let proof = tree.generate_proof("a").unwrap();
     println!("Proof for 'a': {:?}", proof);
 }
 ```
@@ -52,9 +55,10 @@ use merkle_tree::MerkleTree;
 
 fn main() {
     let elements = vec!["a", "b", "c", "d"];
-    let tree = MerkleTree::new(elements);
+    let tree = MerkleTree::new(elements).unwrap();
     let proof = tree.generate_proof("a").unwrap();
 
+    // Verify the proof
     let is_valid = tree.verify("a", proof);
     println!("Is the proof valid? {:?}", is_valid);
 }
@@ -69,11 +73,14 @@ use merkle_tree::MerkleTree;
 
 fn main() {
     let elements = vec!["a", "b", "c", "d"];
-    let mut tree = MerkleTree::new(elements);
-    println!("Root hash: {:?}", tree.root.clone().unwrap());
+    let mut tree = MerkleTree::new(elements).unwrap();
+    println!("Root hash: {:?}", tree.root.clone());
 
+    // Add a new element to the tree
     tree.add_element("e");
-    println!("New root hash: {:?}", tree.root.unwrap());
+
+    // Print the new root hash
+    println!("New root hash: {:?}", tree.root);
 }
 ```
 
@@ -86,10 +93,14 @@ use merkle_tree::MerkleTree;
 
 fn main() {
     let elements = vec!["a", "b", "c", "d"];
-    let mut tree = MerkleTree::new(elements);
+    let mut tree = MerkleTree::new(elements).unwrap();
+
+    // Add a new element to the tree
     tree.add_element("e");
 
+    // Generate and verify a proof for the new element
     let proof = tree.generate_proof("e").unwrap();
     let is_valid = tree.verify("e", proof);
-    println!("Is the proof for 'e' valid? {}", is_valid);
+    println!("Is the proof for 'e' valid? {:?}", is_valid);
 }
+```
